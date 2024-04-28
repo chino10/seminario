@@ -1,0 +1,64 @@
+<form (ngSubmit)="onSubmit()">
+
+  <!-- Lista desplegable para listaClientes -->
+  <div *ngIf="detalleTramite?.listaClientes">
+    <label for="cliente">Cliente:</label>
+    <select id="cliente" [( ngModel)]="detalleTramite.clienteSeleccionado" name="cliente">
+      <option *ngFor="let cliente of detalleTramite?.listaClientes" [value]="cliente.id">
+        {{ cliente.nombre }} {{ cliente.apellido }}
+      </option>
+    </select>
+  </div>
+
+  <!-- Lista desplegable para listaDocumentos -->
+  <div *ngIf="detalleTramite?.listaDocumentos">
+    <label for="documento">Docuemento:</label>
+    <select id="documento" [( ngModel)]="detalleTramite.documentoSeleccionado" name="documento">
+      <option *ngFor="let documento of detalleTramite?.listaDocumentos" [value]="documento.id">
+        {{ documento.nombre }} {{ documento.descripcion }} {{ documento.fechaPresentacion }} {{ documento.tipoDocumento?.nombre }}
+      </option>
+    </select>
+  </div>
+
+  <!-- Lista desplegable para listaUsuarios -->
+  <div *ngIf="detalleTramite?.listaUsuarios">
+    <label for="usuario">Docuemento:</label>
+    <select id="usuario" [( ngModel)]="detalleTramite.usuarioSeleccionado" name="usuario">
+      <option *ngFor="let usuario of detalleTramite?.listaUsuarios" [value]="usuario.id">
+        {{ usuario.nombre }} {{ usuario.apellido }} {{ usuario.dni }} {{ usuario.email }} {{ usuario.rol?.nombre }}
+      </option>
+    </select>
+  </div>
+
+  <!-- Lista desplegable para listaObservaciones -->
+  <div *ngIf="detalleTramite?.listaObservaciones">
+    <label for="observacion">Docuemento:</label>
+    <select id="observacion" [( ngModel)]="detalleTramite.observacionSeleccionado" name="observacion">
+      <option *ngFor="let observacion of detalleTramite?.listaObservaciones" [value]="observacion.id">
+        {{ observacion.fecha }} {{ observacion.descripcion }}
+      </option>
+    </select>
+  </div>
+
+  <!-- Lista desplegable para consulado -->
+  <div *ngIf="detalleTramite?.consulado">
+    <p>Ciudad: {{ detalleTramite?.consulado?.ciudad }}</p>
+    <p>País: {{ detalleTramite?.consulado?.pais?.nombre }}</p>
+    <p>Domicilio: {{ detalleTramite?.consulado?.domicilio }}</p>
+    <p>Provincia: {{ detalleTramite?.consulado?.provincia }}</p>
+  </div>
+
+  <!-- Lista desplegable para estado -->
+  <div *ngIf="detalleTramite?.estado">
+    <p>Nombre: {{ detalleTramite?.estado?.nombre }}</p>
+  </div>
+
+  <!-- Lista desplegable para tramite -->
+  <div *ngIf="detalleTramite?.tramite">
+    <p>Consulado: {{ detalleTramite?.tramite?.consulado?.pais?.nombre }}</p>
+    <p>Importe: {{ detalleTramite?.tramite?.importe }}</p>
+    <p>Tipo Trámite: {{ detalleTramite?.tramite?.tipoTramite?.nombre }}</p>
+  </div>
+
+  <button type="submit">Enviar</button>
+</form>
