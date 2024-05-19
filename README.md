@@ -1,6 +1,6 @@
 # Seminario de práctica de Informática
 
-**ENTREGA 1** - **2024**
+**ENTREGA 2** - **2024**
 **TITULAR EXPERTO: ANA CAROLINA FERREYRA**
 **TITULAR DISCIPLINAR: PABLO ALEJANDRO VIRGOLINI**
 **CÁTEDRA - D - INF275**
@@ -8,7 +8,7 @@
 
 ## Descripción
 
-Hay tres carpetas, una para los scripts de ls BD, otra  con el código java, y otra con el código angular.
+Hay dos carpetas, una para los scripts de ls BD y otra  con el código java
 
 ## Instalación
 
@@ -20,9 +20,6 @@ Hay tres carpetas, una para los scripts de ls BD, otra  con el código java, y o
 ```bash
 git clone https://github.com/chino10/seminario.git
 ```
-Luego desde una IDE (por ejemplo Intellij o Eclipse) el código java puede ejecutarse con el comando **clean spring-boot:run -f pom.xml**.
-Una vez levantado en el puerto 8080, a modo de prueba se puede revisar la documentación en **http://localhost:8080/swagger-ui/index.html#/**, como así también algunas pruebas básicas.
-> Java v21.0.2
+La parte java se tuvo que cambiar debido a que la propuesta técnica no correspondía en la primera entrega. Todavía está en desarrollo.
 
-**3 -** La parte de **angular** tiene mucho código pero todavía no está funcionando.
-> Angular v17.3.6
+Desde una IDE (por ejemplo Intellij o Eclipse) el código java puede ejecutarse haciendo click derecho en la clase MenuInicial.java y luego “Run file”.
