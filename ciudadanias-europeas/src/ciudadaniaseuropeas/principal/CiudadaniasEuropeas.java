@@ -29,35 +29,40 @@ public class CiudadaniasEuropeas {
             System.out.print("Elige una opción: ");
             int opcion = scanner.nextInt();
             switch(opcion) {
-                case 1 -> {
-                    tramite = obtenerTramite();
-                    listaTramites.add(tramite);
-                    System.out.println("Tramite generado con éxito.");
-                }
-                case 2 -> {
-                    System.out.print("Ingrese número de trámite: ");
-                    int numeroTramite = scanner.nextInt();
-                    for(Tramite t : listaTramites) {
-                        if(t.getId() == numeroTramite) {
-                            System.out.println(t);
-                            break;
-                        }
-                    }
-                    throw new TramiteNoEncontradoExcepcion(String.valueOf(numeroTramite));
-                }
-                case 3 -> // TODO ...
-                        System.out.println("Funcionalidad aún no implementada...");
-                case 4 -> {
-                    for(Tramite t : listaTramites) {
-                        System.out.println(t);
-                    }
-                }
-                case 6 -> {
+                case 1 -> crearTramite();
+                case 2 -> buscarTramite();
+                case 3 -> System.out.println("Funcionalidad aún no implementada...");  // TODO ...
+                case 4 -> mostrarTramites();
+                case 5 -> {
                     System.out.println("Programa Finalizado");
                     ejecutando = false;
                 }
                 default -> System.out.println("Opción no válida, intenta nuevamente");
             }
+        }
+    }
+
+    private static void crearTramite() {
+        tramite = obtenerTramite();
+        listaTramites.add(tramite);
+        System.out.println("Tramite generado con éxito.");
+    }
+
+    private static void buscarTramite() throws TramiteNoEncontradoExcepcion {
+        System.out.print("Ingrese número de trámite: ");
+        int numeroTramite = scanner.nextInt();
+        for(Tramite t : listaTramites) {
+            if(t.getId() == numeroTramite) {
+                System.out.println(t);
+                break;
+            }
+        }
+        throw new TramiteNoEncontradoExcepcion(String.valueOf(numeroTramite));
+    }
+
+    private static void mostrarTramites() {
+        for(Tramite t : listaTramites) {
+            System.out.println(t);
         }
     }
 
