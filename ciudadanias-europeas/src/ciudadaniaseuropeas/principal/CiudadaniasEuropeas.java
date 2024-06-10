@@ -30,7 +30,13 @@ public class CiudadaniasEuropeas {
             int opcion = scanner.nextInt();
             switch(opcion) {
                 case 1 -> crearTramite();
-                case 2 -> buscarTramite();
+                case 2 -> {
+                    try {
+                        buscarTramite();
+                    } catch(TramiteNoEncontradoExcepcion e) {
+                        System.err.println(e.getMessage());
+                    }
+                }
                 case 3 -> System.out.println("Funcionalidad aún no implementada...");  // TODO ...
                 case 4 -> mostrarTramites();
                 case 5 -> {
