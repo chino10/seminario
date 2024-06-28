@@ -26,7 +26,7 @@ public class ControladorCiudadaniasEuropeas {
     }
 
     public Tramite consultarTramitePorId(int idTramite) throws TramiteException {
-        Tramite tramite = modeloCiudadaniasEuropeas.consultarTramite(idTramite);
+        Tramite tramite = modeloCiudadaniasEuropeas.obtenerTramitePorId(idTramite);
         if(tramite == null) {
             throw new TramiteException("El trámite " + (long) idTramite + " NO EXISTE.");
         }
