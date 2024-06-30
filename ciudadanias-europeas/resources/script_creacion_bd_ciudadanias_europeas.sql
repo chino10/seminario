@@ -1,6 +1,5 @@
-CREATE DATABASE  IF NOT EXISTS `ciudadanias_europeas_2_pruebas`
-USE `ciudadanias_europeas_2_pruebas`;
-
+CREATE DATABASE  IF NOT EXISTS `ciudadanias_europeas`
+USE `ciudadanias_europeas`;
 
 --
 -- Table structure for table `cliente`
@@ -15,7 +14,6 @@ CREATE TABLE `cliente` (
   PRIMARY KEY (`id_cliente`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-
 --
 -- Table structure for table `pais`
 --
@@ -25,7 +23,6 @@ CREATE TABLE `pais` (
   `nombre` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id_pais`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 
 --
 -- Table structure for table `consulado`
@@ -42,7 +39,6 @@ CREATE TABLE `consulado` (
   CONSTRAINT `id_pais_fk` FOREIGN KEY (`id_pais_fk`) REFERENCES `pais` (`id_pais`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-
 --
 -- Table structure for table `estado_tramite`
 --
@@ -53,7 +49,6 @@ CREATE TABLE `estado_tramite` (
   `nombre` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id_estado`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 
 --
 -- Table structure for table `observacion`
@@ -66,7 +61,6 @@ CREATE TABLE `observacion` (
   PRIMARY KEY (`id_observacion`)
 ) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-
 --
 -- Table structure for table `rol`
 --
@@ -77,7 +71,6 @@ CREATE TABLE `rol` (
   `descripcion` varchar(240) DEFAULT NULL,
   PRIMARY KEY (`id_rol`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 
 --
 -- Table structure for table `tipo_documento`
@@ -90,7 +83,6 @@ CREATE TABLE `tipo_documento` (
   PRIMARY KEY (`id_tipo_documento`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-
 --
 -- Table structure for table `tipo_tramite`
 --
@@ -101,7 +93,6 @@ CREATE TABLE `tipo_tramite` (
   `descripcion` varchar(240) DEFAULT NULL,
   PRIMARY KEY (`id_tipo_tramite`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 
 --
 -- Table structure for table `usuario`
@@ -119,7 +110,6 @@ CREATE TABLE `usuario` (
   CONSTRAINT `id_rol_fk` FOREIGN KEY (`id_rol`) REFERENCES `rol` (`id_rol`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-
 --
 -- Table structure for table `mensaje`
 --
@@ -130,13 +120,10 @@ CREATE TABLE `mensaje` (
   PRIMARY KEY (`id_mensaje`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-
 --
 -- Table structure for table `reporte`
 --
 DROP TABLE IF EXISTS `reporte`;
-
-
 CREATE TABLE `reporte` (
   `id_reporte` bigint NOT NULL AUTO_INCREMENT,
   `fecha` timestamp NULL DEFAULT NULL,
@@ -146,7 +133,6 @@ CREATE TABLE `reporte` (
   `observacion` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id_reporte`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 
 --
 -- Table structure for table `pago`
@@ -163,7 +149,6 @@ CREATE TABLE `pago` (
   CONSTRAINT `id_detalle_tramite` FOREIGN KEY (`id_detalle_tramite`) REFERENCES `detalle_tramite` (`id_detalle_tramite`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `id_observacion` FOREIGN KEY (`id_observacion`) REFERENCES `observacion` (`id_observacion`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 
 --
 -- Table structure for table `tramite`
@@ -183,7 +168,6 @@ CREATE TABLE `tramite` (
   CONSTRAINT `id_tipo_tramite` FOREIGN KEY (`id_tipo_tramite`) REFERENCES `tipo_tramite` (`id_tipo_tramite`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-
 --
 -- Table structure for table `detalle_tramite`
 --
@@ -201,7 +185,6 @@ CREATE TABLE `detalle_tramite` (
   CONSTRAINT `id_estado_tramite` FOREIGN KEY (`id_estado_tramite`) REFERENCES `estado_tramite` (`id_estado`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `id_tramite` FOREIGN KEY (`id_tramite`) REFERENCES `tramite` (`id_tramite`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 
 --
 -- Table structure for table `tipo_documento`
@@ -230,7 +213,6 @@ CREATE TABLE `documento` (
   CONSTRAINT `id_tipo_documento` FOREIGN KEY (`id_tipo_documento`) REFERENCES `tipo_documento` (`id_tipo_documento`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-
 --
 -- Table structure for table `detalle_tramite_cliente`
 --
@@ -244,7 +226,6 @@ CREATE TABLE `detalle_tramite_cliente` (
   CONSTRAINT `id_cliente_det_tra` FOREIGN KEY (`id_cliente`) REFERENCES `cliente` (`id_cliente`),
   CONSTRAINT `id_detalle_tramite_cli` FOREIGN KEY (`id_detalle_tramite`) REFERENCES `detalle_tramite` (`id_detalle_tramite`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 
 --
 -- Table structure for table `detalle_tramite_documento`
@@ -260,13 +241,10 @@ CREATE TABLE `detalle_tramite_documento` (
   CONSTRAINT `id_documento_det_tra` FOREIGN KEY (`id_documento`) REFERENCES `documento` (`id_documento`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-
 --
 -- Table structure for table `detalle_tramite_observacion`
 --
 DROP TABLE IF EXISTS `detalle_tramite_observacion`;
-
-
 CREATE TABLE `detalle_tramite_observacion` (
   `id_detalle_tramite` bigint NOT NULL,
   `id_observacion` bigint NOT NULL,
@@ -275,7 +253,6 @@ CREATE TABLE `detalle_tramite_observacion` (
   CONSTRAINT `id_detalle_tramite_obs` FOREIGN KEY (`id_detalle_tramite`) REFERENCES `detalle_tramite` (`id_detalle_tramite`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `id_observacion_det_tra` FOREIGN KEY (`id_observacion`) REFERENCES `observacion` (`id_observacion`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
 
 --
 -- Table structure for table `detalle_tramite_usuario`
@@ -290,8 +267,6 @@ CREATE TABLE `detalle_tramite_usuario` (
   CONSTRAINT `id_detalle_tramite_usu` FOREIGN KEY (`id_detalle_tramite`) REFERENCES `detalle_tramite` (`id_detalle_tramite`),
   CONSTRAINT `id_usuario_det_tra` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id_usuario`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
-
 
 /**********************************/
 -- ---------------------------------
@@ -318,14 +293,12 @@ LOCK TABLES `cliente` WRITE;
 INSERT INTO `cliente` VALUES (3,12345678,'Juan','Pérez','cuperez@gmail.com'),(4,98765432,'Pedro','Torres','ptorres@gmail.com');
 UNLOCK TABLES;
 
-
 --
 -- Dumping data for table `pais`
 --
 LOCK TABLES `pais` WRITE;
 INSERT INTO `pais` VALUES (1,'España'),(2,'Italia');
 UNLOCK TABLES;
-
 
 --
 -- Dumping data for table `consulado`
@@ -334,14 +307,12 @@ LOCK TABLES `consulado` WRITE;
 INSERT INTO `consulado` VALUES (1,1,'Guido 1770','CABA','Buenos Aires'),(2,2,'Av. Vélez Sarsfield 360','Córdoba','Córdoba');
 UNLOCK TABLES;
 
-
 --
 -- Dumping data for table `estado_tramite`
 --
 LOCK TABLES `estado_tramite` WRITE;
 INSERT INTO `estado_tramite` VALUES (1,'El cliente se comunicó y realizó el pago inicial.','Iniciado'),(2,'El cliente presentó documentos y se están validando.','En curso'),(3,'Se han enviado los documentos a los respectivos consulados','Enviado'),(4,'Se recibó el pasaporte por parte del consulado','Finalizado');
 UNLOCK TABLES;
-
 
 --
 -- Dumping data for table `rol`
@@ -350,7 +321,6 @@ LOCK TABLES `rol` WRITE;
 INSERT INTO `rol` VALUES (1,'Operador','Sólo operaciones diarias.'),(2,'Administrador','Operaciones diarias, validaciones y reportes.');
 UNLOCK TABLES;
 
-
 --
 -- Dumping data for table `tipo_tramite`
 --
@@ -358,14 +328,12 @@ LOCK TABLES `tipo_tramite` WRITE;
 INSERT INTO `tipo_tramite` VALUES (1,'Rectificación','Solicitud de modificación de partidas.'),(2,'Ciudadanía','Solicitud de ciudadanía');
 UNLOCK TABLES;
 
-
 --
 -- Dumping data for table `usuario`
 --
 LOCK TABLES `usuario` WRITE;
 INSERT INTO `usuario` VALUES (1,11223344,'López','empleado@ciudadanias.com.ar','Empleado',1),(2,55667788,'Gómez','administrador@ciudadanias.com.ar','Administrador',2);
 UNLOCK TABLES;
-
 
 --
 -- Dumping data for table `tipo_documento`
