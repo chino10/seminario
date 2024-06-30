@@ -18,7 +18,7 @@ public class GestionCiudadaniasEuropeas {
     private static ControladorCiudadaniasEuropeas controladorCiudadaniasEuropeas;
 
     public static void main(String[] args) throws TramiteException {
-        try(Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/ciudadanias_europeas_2_pruebas", "root", "root")) {
+        try(Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/ciudadanias_europeas", "root", "root")) {
             controladorCiudadaniasEuropeas = new ControladorCiudadaniasEuropeas(connection);
             boolean ejecutando = true;
             while(ejecutando) {
