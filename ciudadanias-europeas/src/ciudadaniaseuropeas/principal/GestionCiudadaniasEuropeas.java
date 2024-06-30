@@ -73,8 +73,9 @@ public class GestionCiudadaniasEuropeas {
     private static void mostrarTramites() throws TramiteException {
         List<Tramite> listaTramites = controladorCiudadaniasEuropeas.consultarTramites();
         if(listaTramites != null && !listaTramites.isEmpty()) {
-            for(Tramite t : listaTramites) {
-                System.out.println(t);
+            for(Tramite tramite : listaTramites) {
+                Gson gson = obtenerGson();
+                System.out.println("TRÁMITE:\n" + gson.toJson(tramite));
             }
         } else {
             // No necesariamente es un error que no haya trámites cargados.

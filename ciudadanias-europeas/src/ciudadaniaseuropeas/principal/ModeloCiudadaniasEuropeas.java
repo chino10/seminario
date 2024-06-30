@@ -188,12 +188,13 @@ public class ModeloCiudadaniasEuropeas {
     }
 
     /**
-     * Por motivos de facilidad y simplicidad sólo se muestran los 10 últimos trámites si es que llega a haber más de 10.
+     * Se muestra la cantidad de trámites seleccionada por el usuario (máximo 50).
      */
-    public List<Tramite> consultarTramites() throws TramiteException {
+    public List<Tramite> consultarTramites(int cantidadTramites) throws TramiteException {
         List<Tramite> listaTramites = new ArrayList<>();
-        String consultaSQL = "SELECT TOP(10) * FROM tramite ORDER BY id_tramite DESC";
+        String consultaSQL = "SELECT * FROM tramite ORDER BY id_tramite DESC LIMIT ?";
         try(PreparedStatement preparedStatement = connection.prepareStatement(consultaSQL)) {
+            preparedStatement.setInt(1, cantidadTramites);
             ResultSet resultSet = preparedStatement.executeQuery();
             while(resultSet.next()) {
                 long idTramiteResult = resultSet.getLong("id_tramite");
@@ -237,14 +238,14 @@ public class ModeloCiudadaniasEuropeas {
     }
 
     public boolean actualizarTramite(Tramite tramite) throws TramiteException {
-        String consultaSQL = "UPDATE tramite SET ?, ?, ?, ?, ? WHERE id_tramite = ?";
+        String consultaSQL = "UPDATE tramite SET importe = ?, id_consulado = ?, id_tipo_tramite = ?, moneda = ? WHERE id_tramite = ?";
         try(PreparedStatement preparedStatement = connection.prepareStatement(consultaSQL)) {
-            preparedStatement.setLong(1, tramite.getId());
-            preparedStatement.setFloat(2, tramite.getImporte());
-            preparedStatement.setLong(3, tramite.getConsulado().getId());
-            preparedStatement.setLong(4, tramite.getTipoTramite().getId());
-            preparedStatement.setString(5, tramite.getMoneda());
-            int updateResult = preparedStatement.executeUpdate(consultaSQL);
+            preparedStatement.setFloat(1, tramite.getImporte());
+            preparedStatement.setLong(2, tramite.getConsulado().getId());
+            preparedStatement.setLong(3, tramite.getTipoTramite().getId());
+            preparedStatement.setString(4, tramite.getMoneda());
+            preparedStatement.setLong(5, tramite.getId());
+            int updateResult = preparedStatement.executeUpdate();
             System.out.println("Cantidad de trámites actualizados: " + updateResult);
             return true;
         } catch(SQLException e) {

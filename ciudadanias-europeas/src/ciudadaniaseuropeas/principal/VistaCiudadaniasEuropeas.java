@@ -168,4 +168,12 @@ public class VistaCiudadaniasEuropeas {
         tipoTramite.setDescripcion("Solicitud de modificación de partidas.");
         return tipoTramite;
     }
+
+    /**
+     * Solicito y obtengo la cantidad de trámites a buscar.
+     */
+    public int obtenerCantidadTramites() {
+        System.out.print("Ingrese cantidad de trámites a buscar (más 50): ");
+        return scanner.nextInt();
+    }
 }

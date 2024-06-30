@@ -34,7 +34,8 @@ public class ControladorCiudadaniasEuropeas {
     }
 
     public List<Tramite> consultarTramites() throws TramiteException {
-        return modeloCiudadaniasEuropeas.consultarTramites();
+        int cantidadTramites = vistaCiudadaniasEuropeas.obtenerCantidadTramites();
+        return modeloCiudadaniasEuropeas.consultarTramites(cantidadTramites);
     }
 
     public boolean actualizarTramite() throws TramiteException {
