@@ -8,6 +8,7 @@ public class Tramite {
     private TipoTramite tipoTramite;
     private Float importe;
     private String moneda;
+    private boolean activo;
     private List<DetalleTramite> listaDetallesTramite;
 
     public Long getId() {
@@ -39,6 +40,12 @@ public class Tramite {
     }
     public void setMoneda(String moneda) {
         this.moneda = moneda;
+    }
+    public boolean getActivo() {
+        return activo;
+    }
+    public void setActivo(boolean activo) {
+        this.activo = activo;
     }
     public List<DetalleTramite> getListaDetallesTramite() {
         return listaDetallesTramite;

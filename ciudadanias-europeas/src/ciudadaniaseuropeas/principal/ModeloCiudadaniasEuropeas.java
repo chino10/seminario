@@ -3,8 +3,6 @@ package ciudadaniaseuropeas.principal;
 import ciudadaniaseuropeas.entity.*;
 import ciudadaniaseuropeas.exception.TramiteException;
 
-/*import java.sql.*;
-import java.time.LocalDateTime;*/
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -51,12 +49,13 @@ public class ModeloCiudadaniasEuropeas {
     }
 
     public long insertarTramite(Tramite tramite) throws TramiteException {
-        String consultaSQL = "INSERT INTO tramite (importe, id_consulado, id_tipo_tramite, moneda) VALUES (?, ?, ?, ?)";
+        String consultaSQL = "INSERT INTO tramite (importe, id_consulado, id_tipo_tramite, moneda, activo) VALUES (?, ?, ?, ?, ?)";
         try(PreparedStatement preparedStatement = connection.prepareStatement(consultaSQL, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setFloat(1, tramite.getImporte());
             preparedStatement.setLong(2, tramite.getConsulado().getId());
             preparedStatement.setLong(3, tramite.getTipoTramite().getId());
             preparedStatement.setString(4, tramite.getMoneda());
+            preparedStatement.setBoolean(5, tramite.getActivo());
             preparedStatement.executeUpdate();
             ResultSet resultSet = preparedStatement.getGeneratedKeys();
             if(resultSet.next()) {
@@ -71,13 +70,14 @@ public class ModeloCiudadaniasEuropeas {
     }
 
     private long insertarDetallesTramite(Tramite tramite) throws TramiteException {
-        String consultaSQL = "INSERT INTO detalle_tramite (fecha_inicio, fecha_fin, id_estado_tramite, id_tramite) VALUES (?, ?, ?, ?)";
+        String consultaSQL = "INSERT INTO detalle_tramite (fecha_inicio, fecha_fin, id_estado_tramite, id_tramite, activo) VALUES (?, ?, ?, ?, ?)";
         DetalleTramite detalleTramite = tramite.getListaDetallesTramite().getFirst();
         try(PreparedStatement preparedStatement = connection.prepareStatement(consultaSQL, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setTimestamp(1, this.desdeLocalDateTimeHaciaTimestamp(detalleTramite.getFechaInicio()));
             preparedStatement.setTimestamp(2, this.desdeLocalDateTimeHaciaTimestamp(detalleTramite.getFechaFin()));
             preparedStatement.setLong(3, detalleTramite.getEstado().getId());
             preparedStatement.setLong(4, tramite.getId());
+            preparedStatement.setBoolean(5, detalleTramite.getActivo());
             preparedStatement.executeUpdate();
             ResultSet resultSet = preparedStatement.getGeneratedKeys();
             if(resultSet.next()) {
@@ -220,6 +220,7 @@ public class ModeloCiudadaniasEuropeas {
                 long idConsulado = resultSet.getLong("id_consulado");
                 long idTipoTramite = resultSet.getLong("id_tipo_tramite");
                 String moneda = resultSet.getString("moneda");
+                boolean activo = resultSet.getBoolean("activo");
                 Consulado consulado = this.obtenerConsuladoPorId(idConsulado);
                 TipoTramite tipoTramite = this.obtenerTipoTramitePorId(idTipoTramite);
                 tramite = new Tramite();
@@ -228,6 +229,7 @@ public class ModeloCiudadaniasEuropeas {
                 tramite.setConsulado(consulado);
                 tramite.setTipoTramite(tipoTramite);
                 tramite.setMoneda(moneda);
+                tramite.setActivo(activo);
                 tramite.setListaDetallesTramite(this.obtenerDetallesTramite(idTramite));
             }
             resultSet.close();
@@ -254,12 +256,30 @@ public class ModeloCiudadaniasEuropeas {
     }
 
     /**
-     * Con motivo de mantener el registro, en un futuro se tiene planeado realizar una baja lógica a través de una columna y no un 'DELETE'.
+     * Con motivo de mantener el registro, sólo se realiza una baja lógica y no un 'DELETE'.
      */
     public boolean eliminarTramite(int idTramite) throws TramiteException {
-        String consultaSQL = "DELETE FROM tramite WHERE id_tramite = ?";
+        if(this.eliminarDetalleTramite(idTramite)) {
+            String consultaSQL = "UPDATE tramite SET activo = ? WHERE id_tramite = ?";
+            try(PreparedStatement preparedStatement = connection.prepareStatement(consultaSQL)) {
+                preparedStatement.setBoolean(1, false);
+                preparedStatement.setInt(2, idTramite);
+                preparedStatement.executeUpdate();
+            } catch(SQLException e) {
+                throw new TramiteException("Ha ocurrido un error intentando ELIMINAR el trámite: " + idTramite + "\n" + e.getMessage());
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Al igual que con la tabla tramite, con motivo de mantener el registro, sólo se realiza una baja lógica y no un 'DELETE'.
+     */
+    public boolean eliminarDetalleTramite(int idTramite) throws TramiteException {
+        String consultaSQL = "UPDATE detalle_tramite SET activo = ? WHERE id_tramite = ?";
         try(PreparedStatement preparedStatement = connection.prepareStatement(consultaSQL)) {
-            preparedStatement.setInt(1, idTramite);
+            preparedStatement.setBoolean(1, false);
+            preparedStatement.setInt(2, idTramite);
             preparedStatement.executeUpdate();
         } catch(SQLException e) {
             throw new TramiteException("Ha ocurrido un error intentando ELIMINAR el trámite: " + idTramite + "\n" + e.getMessage());
@@ -370,12 +390,14 @@ public class ModeloCiudadaniasEuropeas {
                 Timestamp fechaInicio = resultSet.getTimestamp("fecha_inicio");
                 Timestamp fechaFin = resultSet.getTimestamp("fecha_fin");
                 long idEstadoTramite = resultSet.getLong("id_estado_tramite");
+                boolean activo = resultSet.getBoolean("activo");
                 EstadoTramite estadoTramite = this.obtenerEstadoTramitePorId(idEstadoTramite);
                 detalleTramite = new DetalleTramite();
                 detalleTramite.setId(idDetalleTramiteResult);
                 detalleTramite.setFechaInicio(new Timestamp(fechaInicio.getTime()).toLocalDateTime());
                 detalleTramite.setFechaFin(fechaFin.toLocalDateTime());
                 detalleTramite.setEstado(estadoTramite);
+                detalleTramite.setActivo(activo);
                 detalleTramite.setListaClientes(this.obtenerClientes(idDetalleTramiteResult));
                 detalleTramite.setListaUsuarios(this.obtenerUsuarios(idDetalleTramiteResult));
                 detalleTramite.setListaObservaciones(this.obtenerObservaciones(idDetalleTramiteResult));

@@ -20,6 +20,7 @@ public class VistaCiudadaniasEuropeas {
         tramite.setTipoTramite(this.obtenerTipoTramiteCiudadania());
         tramite.setImporte(200.00F);
         tramite.setMoneda("EUR");
+        tramite.setActivo(true);
         tramite.setConsulado(this.obtenerConsulado());
         List<DetalleTramite> listaDetallesTramite = new ArrayList<>();
         listaDetallesTramite.add(this.obtenerDetalleTramite(tramite));
@@ -60,6 +61,7 @@ public class VistaCiudadaniasEuropeas {
         List<Usuario> listaUsuarios = new ArrayList<>();
         listaUsuarios.add(this.obtenerUsuario());
         detalleTramite.setListaUsuarios(listaUsuarios);
+        detalleTramite.setActivo(true);
         return detalleTramite;
     }
 
@@ -173,7 +175,7 @@ public class VistaCiudadaniasEuropeas {
      * Solicito y obtengo la cantidad de trámites a buscar.
      */
     public int obtenerCantidadTramites() {
-        System.out.print("Ingrese cantidad de trámites a buscar (más 50): ");
+        System.out.print("Ingrese cantidad de trámites a buscar (máx. 50): ");
         return scanner.nextInt();
     }
 }

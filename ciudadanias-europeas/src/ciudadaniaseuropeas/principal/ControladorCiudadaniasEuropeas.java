@@ -49,10 +49,10 @@ public class ControladorCiudadaniasEuropeas {
         }
     }
 
-    public boolean eliminarTramite() throws TramiteException {
+    public int eliminarTramite() throws TramiteException {
         int idTramite = vistaCiudadaniasEuropeas.obtenerIdTramite();
         if(modeloCiudadaniasEuropeas.eliminarTramite(idTramite)) {
-            return true;
+            return idTramite;
         } else {
             throw new TramiteException("El trámite " + (long) idTramite + " NO SE PUDO ELIMINAR...");
         }

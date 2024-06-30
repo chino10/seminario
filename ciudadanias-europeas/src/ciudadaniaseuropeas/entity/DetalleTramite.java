@@ -13,6 +13,7 @@ public class DetalleTramite {
     private LocalDateTime fechaFin;
     private List<Observacion> listaObservaciones;
     private Tramite tramite;
+    private boolean activo;
 
     public Long getId() {
         return id;
@@ -67,6 +68,12 @@ public class DetalleTramite {
     }
     public void setTramite(Tramite tramite) {
         this.tramite = tramite;
+    }
+    public boolean getActivo() {
+        return activo;
+    }
+    public void setActivo(boolean activo) {
+        this.activo = activo;
     }
 
     @Override
