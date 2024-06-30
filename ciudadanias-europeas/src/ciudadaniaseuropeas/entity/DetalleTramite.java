@@ -9,10 +9,10 @@ public class DetalleTramite {
     private List<Documento> listaDocumentos;
     private EstadoTramite estado;
     private List<Usuario> listaUsuarios;
-    private Consulado consulado;
     private LocalDateTime fechaInicio;
     private LocalDateTime fechaFin;
     private List<Observacion> listaObservaciones;
+    private Tramite tramite;
 
     public Long getId() {
         return id;
@@ -44,12 +44,6 @@ public class DetalleTramite {
     public void setListaUsuarios(List<Usuario> listaUsuarios) {
         this.listaUsuarios = listaUsuarios;
     }
-    public Consulado getConsulado() {
-        return consulado;
-    }
-    public void setConsulado(Consulado consulado) {
-        this.consulado = consulado;
-    }
     public LocalDateTime getFechaInicio() {
         return fechaInicio;
     }
@@ -68,6 +62,12 @@ public class DetalleTramite {
     public void setListaObservaciones(List<Observacion> listaObservaciones) {
         this.listaObservaciones = listaObservaciones;
     }
+    public Tramite getTramite() {
+        return tramite;
+    }
+    public void setTramite(Tramite tramite) {
+        this.tramite = tramite;
+    }
 
     @Override
     public String toString() {
@@ -77,7 +77,6 @@ public class DetalleTramite {
                 ", listaDocumentos=" + listaDocumentos +
                 ", estado=" + estado +
                 ", listaUsuarios=" + listaUsuarios +
-                ", consulado=" + consulado +
                 ", fechaInicio=" + fechaInicio +
                 ", fechaFin=" + fechaFin +
                 ", listaObservaciones=" + listaObservaciones +

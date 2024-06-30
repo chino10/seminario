@@ -15,9 +15,9 @@ public class ControladorCiudadaniasEuropeas {
         this.vistaCiudadaniasEuropeas = new VistaCiudadaniasEuropeas();
     }
 
-    public boolean insertarTramite() {
+    public long insertarTramite() throws TramiteException {
         Tramite tramite = vistaCiudadaniasEuropeas.obtenerTramite();
-        return modeloCiudadaniasEuropeas.insertarTramite(tramite);
+        return modeloCiudadaniasEuropeas.insertarAll(tramite);
     }
 
     public Tramite consultarTramitePorId() throws TramiteException {
@@ -33,7 +33,7 @@ public class ControladorCiudadaniasEuropeas {
         return tramite;
     }
 
-    public List<Tramite> consultarTramites() {
+    public List<Tramite> consultarTramites() throws TramiteException {
         return modeloCiudadaniasEuropeas.consultarTramites();
     }
 

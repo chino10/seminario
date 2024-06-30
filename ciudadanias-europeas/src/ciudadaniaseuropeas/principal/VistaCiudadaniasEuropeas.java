@@ -17,76 +17,66 @@ public class VistaCiudadaniasEuropeas {
 
     public Tramite obtenerTramite() {
         Tramite tramite = new Tramite();
-        tramite.setTipoTramite(obtenerTipoTramiteCiudadania());
+        tramite.setTipoTramite(this.obtenerTipoTramiteCiudadania());
         tramite.setImporte(200.00F);
         tramite.setMoneda("EUR");
+        tramite.setConsulado(this.obtenerConsulado());
         List<DetalleTramite> listaDetallesTramite = new ArrayList<>();
-        listaDetallesTramite.add(obtenerDetalleTramite());
+        listaDetallesTramite.add(this.obtenerDetalleTramite(tramite));
         tramite.setListaDetallesTramite(listaDetallesTramite);
         return tramite;
     }
 
     private TipoTramite obtenerTipoTramiteCiudadania() {
         TipoTramite tipoTramite = new TipoTramite();
+        tipoTramite.setId(2L);
         tipoTramite.setNombre("Ciudadanía");
         tipoTramite.setDescripcion("Solicitud de ciudadanía");
         return tipoTramite;
     }
 
-    private DetalleTramite obtenerDetalleTramite() {
+    private DetalleTramite obtenerDetalleTramite(Tramite tramite) {
         DetalleTramite detalleTramite = new DetalleTramite();
+        // tramite
+        detalleTramite.setTramite(tramite);
         // cliente
         List<Cliente> listaClientes = new ArrayList<>();
-        listaClientes.add(obtenerCliente());
+        listaClientes.add(this.obtenerCliente());
         detalleTramite.setListaClientes(listaClientes);
-        // consulado
-        detalleTramite.setConsulado(obtenerConsulado());
         // fechas
         detalleTramite.setFechaInicio(LocalDateTime.now());
         detalleTramite.setFechaFin(LocalDateTime.of(2025, Month.JULY, 29, 12, 00, 00));
         // estado
-        detalleTramite.setEstado(obtenerEstadoTramite());
+        detalleTramite.setEstado(this.obtenerEstadoTramite());
         // documentos
-        detalleTramite.setListaDocumentos(new ArrayList<>());
+        List<Documento> listaDocumentos = new ArrayList<>();
+        listaDocumentos.add(this.obtenerDocumento());
+        detalleTramite.setListaDocumentos(listaDocumentos);
         // observaciones
         List<Observacion> listaObservaciones = new ArrayList<>();
-        listaObservaciones.add(obtenerObservacion());
+        listaObservaciones.add(this.obtenerObservacion());
         detalleTramite.setListaObservaciones(listaObservaciones);
         // usuario
         List<Usuario> listaUsuarios = new ArrayList<>();
-        listaUsuarios.add(obtenerUsuario());
+        listaUsuarios.add(this.obtenerUsuario());
         detalleTramite.setListaUsuarios(listaUsuarios);
         return detalleTramite;
     }
 
     private Cliente obtenerCliente() {
         Cliente cliente = new Cliente();
-        // nombre
-        System.out.print("Sólo Nombre: ");
-        String nombre = scanner.nextLine();
-        scanner.nextLine();
-        cliente.setNombre(nombre);
-        // apellido
-        System.out.print("Apellido: ");
-        String apellido = scanner.nextLine();
-        scanner.nextLine();
-        cliente.setApellido(apellido);
-        // dni
-        System.out.print("DNI: ");
-        Long dni = scanner.nextLong();
-        scanner.nextLine();
-        cliente.setDni(dni);
-        // email
-        System.out.print("Email: ");
-        String email = scanner.nextLine();
-        scanner.nextLine();
-        cliente.setEmail(email);
+        cliente.setId(4L);
+        cliente.setNombre("Pedro");
+        cliente.setApellido("Torres");
+        cliente.setDni(98765432L);
+        cliente.setEmail("ptorres@gmail.com");
         return cliente;
     }
 
     private Consulado obtenerConsulado() {
         Consulado consulado = new Consulado();
-        consulado.setPais(obtenerPais());
+        consulado.setId(1L);
+        consulado.setPais(this.obtenerPais());
         consulado.setProvincia("Buenos Aires");
         consulado.setCiudad("CABA");
         consulado.setDomicilio("Guido 1770");
@@ -95,9 +85,27 @@ public class VistaCiudadaniasEuropeas {
 
     private EstadoTramite obtenerEstadoTramite() {
         EstadoTramite estadoTramite = new EstadoTramite();
+        estadoTramite.setId(1L);
         estadoTramite.setNombre("INICIADO");
         estadoTramite.setDescripcion("Es el Primer estado, es el inicio de cualquier trámite de ciudadanía.");
         return estadoTramite;
+    }
+
+    private Documento obtenerDocumento() {
+        Documento documento = new Documento();
+        documento.setFechaPresentacion(LocalDateTime.now());
+        documento.setNombre("Partida Nacimiento");
+        documento.setDescripcion("Partida de nacimiento que necesita ser rectificada.");
+        documento.setTipoDocumento(this.obtenerTipoDocumento());
+        return documento;
+    }
+
+    private TipoDocumento obtenerTipoDocumento() {
+        TipoDocumento tipoDocumento = new TipoDocumento();
+        tipoDocumento.setId(3L);
+        tipoDocumento.setNombre("Partida");
+        tipoDocumento.setDescripcion("De nacimiento, matrimonio, defunción.");
+        return tipoDocumento;
     }
 
     private Observacion obtenerObservacion() {
@@ -109,27 +117,33 @@ public class VistaCiudadaniasEuropeas {
 
     private Usuario obtenerUsuario() {
         Usuario usuario = new Usuario();
-        usuario.setNombre("Pablo");
-        usuario.setApellido("Hidalgo");
-        usuario.setDni(12345678L);
-        usuario.setEmail("phidalgo@ciudadanias");
+        usuario.setId(1L);
+        usuario.setNombre("Empleado");
+        usuario.setApellido("López");
+        usuario.setDni(11223344L);
+        usuario.setEmail("empleado@ciudadanias.com.ar");
         usuario.setRol(obtenerRol());
         return usuario;
     }
 
     private Pais obtenerPais() {
         Pais pais = new Pais();
+        pais.setId(1L);
         pais.setNombre("España");
         return pais;
     }
 
     private Rol obtenerRol() {
         Rol rol = new Rol();
+        rol.setId(1L);
         rol.setNombre("Operador");
         rol.setDescripcion("Sólo operaciones diarias ó rutinarias.");
         return rol;
     }
 
+    /**
+     * Solicito y obtengo el id del trámite ingresado por el usuario.
+     */
     public int obtenerIdTramite() {
         System.out.print("Ingrese número de trámite: ");
         return scanner.nextInt();
@@ -149,6 +163,7 @@ public class VistaCiudadaniasEuropeas {
 
     private TipoTramite obtenerTipoTramiteRectificacion() {
         TipoTramite tipoTramite = new TipoTramite();
+        tipoTramite.setId(1L);
         tipoTramite.setNombre("Rectificación");
         tipoTramite.setDescripcion("Solicitud de modificación de partidas.");
         return tipoTramite;

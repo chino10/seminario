@@ -3,7 +3,16 @@ package ciudadaniaseuropeas.principal;
 import ciudadaniaseuropeas.entity.*;
 import ciudadaniaseuropeas.exception.TramiteException;
 
-import java.sql.*;
+/*import java.sql.*;
+import java.time.LocalDateTime;*/
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,39 +20,171 @@ public class ModeloCiudadaniasEuropeas {
     private final Connection connection;
     private static final String CONSULTA_GENERICA = "SELECT * FROM ";
     private static final String ERROR_GENERICO = "Ha ocurrido un error consultando ";
+    private static final String ERROR_DETALLE_TRAMITE = "Ha ocurrido un error insertando detalle_tramite_";
 
     public ModeloCiudadaniasEuropeas(Connection connection) {
         this.connection = connection;
     }
 
-    public boolean insertarTramite(Tramite tramite) throws TramiteException {
+    public long insertarAll(Tramite tramite) throws TramiteException {
+        long idTramite = this.insertarTramite(tramite);
+        if(idTramite > 0) {
+            tramite.setId(idTramite);
+            DetalleTramite detalleTramite = tramite.getListaDetallesTramite().getFirst();
+            if(detalleTramite != null) {
+                long idDetalleTramite = this.insertarDetallesTramite(tramite);
+                if(idDetalleTramite > 0) {
+                    detalleTramite.setId(idDetalleTramite);
+                    if(this.insertarDetalleTramiteCliente(detalleTramite)) {
+                        if(this.insertarDetalleTramiteUsuario(detalleTramite)) {
+                            if( this.insertarDetalleTramiteObservacion(detalleTramite)) {
+                                if(this.insertarDetalleTramiteDocumento(detalleTramite)) {
+                                    return idTramite;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return 0;
+    }
+
+    public long insertarTramite(Tramite tramite) throws TramiteException {
         String consultaSQL = "INSERT INTO tramite (importe, id_consulado, id_tipo_tramite, moneda) VALUES (?, ?, ?, ?)";
-        try(PreparedStatement preparedStatement = connection.prepareStatement(consultaSQL)) {
+        try(PreparedStatement preparedStatement = connection.prepareStatement(consultaSQL, Statement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setFloat(1, tramite.getImporte());
             preparedStatement.setLong(2, tramite.getConsulado().getId());
             preparedStatement.setLong(3, tramite.getTipoTramite().getId());
             preparedStatement.setString(4, tramite.getMoneda());
             preparedStatement.executeUpdate();
-            this.insertarDetallesTramite();
+            ResultSet resultSet = preparedStatement.getGeneratedKeys();
+            if(resultSet.next()) {
+                long idTramite =  resultSet.getLong(1);
+                resultSet.close();
+                return idTramite;
+            }
         } catch(SQLException e) {
-            throw new TramiteException("Ha ocurrido un error insertando el trámite.");
+            throw new TramiteException("Ha ocurrido un error insertando el trámite.\n" + e.getMessage());
+        }
+        return 0;
+    }
+
+    private long insertarDetallesTramite(Tramite tramite) throws TramiteException {
+        String consultaSQL = "INSERT INTO detalle_tramite (fecha_inicio, fecha_fin, id_estado_tramite, id_tramite) VALUES (?, ?, ?, ?)";
+        DetalleTramite detalleTramite = tramite.getListaDetallesTramite().getFirst();
+        try(PreparedStatement preparedStatement = connection.prepareStatement(consultaSQL, Statement.RETURN_GENERATED_KEYS)) {
+            preparedStatement.setTimestamp(1, this.desdeLocalDateTimeHaciaTimestamp(detalleTramite.getFechaInicio()));
+            preparedStatement.setTimestamp(2, this.desdeLocalDateTimeHaciaTimestamp(detalleTramite.getFechaFin()));
+            preparedStatement.setLong(3, detalleTramite.getEstado().getId());
+            preparedStatement.setLong(4, tramite.getId());
+            preparedStatement.executeUpdate();
+            ResultSet resultSet = preparedStatement.getGeneratedKeys();
+            if(resultSet.next()) {
+                long idDetalleTramite =  resultSet.getLong(1);
+                resultSet.close();
+                return idDetalleTramite;
+            }
+        } catch(SQLException e) {
+            throw new TramiteException("Ha ocurrido un error insertando el detalle del trámite: " + detalleTramite.getTramite().getId() + "\n" + e.getMessage());
+        }
+        return 0;
+    }
+
+    private boolean insertarDetalleTramiteCliente(DetalleTramite detalleTramite) throws TramiteException {
+        String consultaSQL = "INSERT INTO detalle_tramite_cliente (id_detalle_tramite, id_cliente) VALUES (?, ?)";
+        try(PreparedStatement preparedStatement = connection.prepareStatement(consultaSQL)) {
+            preparedStatement.setLong(1, detalleTramite.getId());
+            preparedStatement.setLong(2, detalleTramite.getListaClientes().getFirst().getId());
+            preparedStatement.executeUpdate();
+        } catch(SQLException e) {
+            throw new TramiteException(ERROR_DETALLE_TRAMITE + "cliente: " + detalleTramite.getId() + " - " + detalleTramite.getListaClientes().getFirst().getId() + "\n" + e.getMessage());
         }
         return true;
     }
 
-    private void insertarDetallesTramite() {
-        String consultaSQL = "INSERT INTO tramite (importe, id_consulado, id_tipo_tramite, moneda) VALUES (?, ?, ?, ?)";
+    private boolean insertarDetalleTramiteUsuario(DetalleTramite detalleTramite) throws TramiteException {
+        String consultaSQL = "INSERT INTO detalle_tramite_usuario (id_detalle_tramite, id_usuario) VALUES (?, ?)";
         try(PreparedStatement preparedStatement = connection.prepareStatement(consultaSQL)) {
-            preparedStatement.setFloat(1, tramite.getImporte());
-            preparedStatement.setLong(2, tramite.getConsulado().getId());
-            preparedStatement.setLong(3, tramite.getTipoTramite().getId());
-            preparedStatement.setString(4, tramite.getMoneda());
+            preparedStatement.setLong(1, detalleTramite.getId());
+            preparedStatement.setLong(2, detalleTramite.getListaUsuarios().getFirst().getId());
             preparedStatement.executeUpdate();
-            this.insertarDetallesTramite();
         } catch(SQLException e) {
-            throw new TramiteException("Ha ocurrido un error insertando el trámite.");
+            throw new TramiteException(ERROR_DETALLE_TRAMITE + "usuario: " + detalleTramite.getId() + " - " + detalleTramite.getListaUsuarios().getFirst().getId() + "\n" + e.getMessage());
         }
         return true;
+    }
+
+    private boolean insertarDetalleTramiteObservacion(DetalleTramite detalleTramite) throws TramiteException {
+        String consultaSQL = "INSERT INTO detalle_tramite_observacion (id_detalle_tramite, id_observacion) VALUES (?, ?)";
+        try(PreparedStatement preparedStatement = connection.prepareStatement(consultaSQL)) {
+            preparedStatement.setLong(1, detalleTramite.getId());
+            long idObservacion = this.insertarObservacion(detalleTramite.getListaObservaciones().getFirst());
+            if(idObservacion > 0) {
+                preparedStatement.setLong(2, idObservacion);
+            } else {
+                throw new SQLException("No insertó la observación.");
+            }
+            preparedStatement.executeUpdate();
+        } catch(SQLException e) {
+            throw new TramiteException(ERROR_DETALLE_TRAMITE + "observacion: " + detalleTramite.getId() + " - " + detalleTramite.getListaObservaciones().getFirst().getId() + "\n" + e.getMessage());
+        }
+        return true;
+    }
+
+    private long insertarObservacion(Observacion observacion) throws TramiteException {
+        String consultaSQL = "INSERT INTO observacion (fecha, descripcion) VALUES (?, ?)";
+        try(PreparedStatement preparedStatement = connection.prepareStatement(consultaSQL, Statement.RETURN_GENERATED_KEYS)) {
+            preparedStatement.setTimestamp(1, this.desdeLocalDateTimeHaciaTimestamp(observacion.getFecha()));
+            preparedStatement.setString(2, observacion.getDescripcion());
+            preparedStatement.executeUpdate();
+            ResultSet resultSet = preparedStatement.getGeneratedKeys();
+            if(resultSet.next()) {
+                long idObservacion =  resultSet.getLong(1);
+                resultSet.close();
+                return idObservacion;
+            }
+        } catch(SQLException e) {
+            throw new TramiteException("Ha ocurrido un error insertando la observación.\n" + e.getMessage());
+        }
+        return 0;
+    }
+
+    private boolean insertarDetalleTramiteDocumento(DetalleTramite detalleTramite) throws TramiteException {
+        String consultaSQL = "INSERT INTO detalle_tramite_documento (id_detalle_tramite, id_documento) VALUES (?, ?)";
+        try(PreparedStatement preparedStatement = connection.prepareStatement(consultaSQL)) {
+            preparedStatement.setLong(1, detalleTramite.getId());
+            long idDocumento = this.insertarDocumento(detalleTramite.getListaDocumentos().getFirst());
+            if(idDocumento > 0) {
+                preparedStatement.setLong(2, idDocumento);
+            } else {
+                throw new SQLException("No insertó el documento.");
+            }
+            preparedStatement.executeUpdate();
+        } catch(SQLException e) {
+            throw new TramiteException(ERROR_DETALLE_TRAMITE + "documento: " + detalleTramite.getId() + " - " + detalleTramite.getListaDocumentos().getFirst().getId() + "\n" + e.getMessage());
+        }
+        return true;
+    }
+
+    private long insertarDocumento(Documento documento) throws TramiteException {
+        String consultaSQL = "INSERT INTO documento (fecha_presentacion, descripcion, nombre, id_tipo_documento) VALUES (?, ?, ?, ?)";
+        try(PreparedStatement preparedStatement = connection.prepareStatement(consultaSQL, Statement.RETURN_GENERATED_KEYS)) {
+            preparedStatement.setTimestamp(1, this.desdeLocalDateTimeHaciaTimestamp(documento.getFechaPresentacion()));
+            preparedStatement.setString(2, documento.getDescripcion());
+            preparedStatement.setString(3, documento.getNombre());
+            preparedStatement.setLong(4, documento.getTipoDocumento().getId());
+            preparedStatement.executeUpdate();
+            ResultSet resultSet = preparedStatement.getGeneratedKeys();
+            if(resultSet.next()) {
+                long idDocumento =  resultSet.getLong(1);
+                resultSet.close();
+                return idDocumento;
+            }
+        } catch(SQLException e) {
+            throw new TramiteException("Ha ocurrido un error insertando el documento.\n" + e.getMessage());
+        }
+        return 0;
     }
 
     /**
@@ -51,7 +192,7 @@ public class ModeloCiudadaniasEuropeas {
      */
     public List<Tramite> consultarTramites() throws TramiteException {
         List<Tramite> listaTramites = new ArrayList<>();
-        String consultaSQL = "SELECT TOP(10) * FORM tramite";
+        String consultaSQL = "SELECT TOP(10) * FROM tramite ORDER BY id_tramite DESC";
         try(PreparedStatement preparedStatement = connection.prepareStatement(consultaSQL)) {
             ResultSet resultSet = preparedStatement.executeQuery();
             while(resultSet.next()) {
@@ -61,7 +202,7 @@ public class ModeloCiudadaniasEuropeas {
             }
             resultSet.close();
         } catch(SQLException e) {
-            throw new TramiteException(ERROR_GENERICO + "los trámites.");
+            throw new TramiteException(ERROR_GENERICO + "los trámites.\n" + e.getMessage());
         }
         return listaTramites;
     }
@@ -90,7 +231,7 @@ public class ModeloCiudadaniasEuropeas {
             }
             resultSet.close();
         } catch(SQLException e) {
-            throw new TramiteException(ERROR_GENERICO + "el trámite: " + idTramite);
+            throw new TramiteException(ERROR_GENERICO + "el trámite: " + idTramite + "\n" + e.getMessage());
         }
         return tramite;
     }
@@ -107,7 +248,7 @@ public class ModeloCiudadaniasEuropeas {
             System.out.println("Cantidad de trámites actualizados: " + updateResult);
             return true;
         } catch(SQLException e) {
-            throw new TramiteException("Ha ocurido un error intentando actualizar el trámite: " + tramite.getId());
+            throw new TramiteException("Ha ocurido un error intentando actualizar el trámite: " + tramite.getId() + "\n" + e.getMessage());
         }
     }
 
@@ -115,12 +256,12 @@ public class ModeloCiudadaniasEuropeas {
      * Con motivo de mantener el registro, en un futuro se tiene planeado realizar una baja lógica a través de una columna y no un 'DELETE'.
      */
     public boolean eliminarTramite(int idTramite) throws TramiteException {
-        String consultaSQL = "DELETE FORM tramite WHERE id_tramite = ?";
+        String consultaSQL = "DELETE FROM tramite WHERE id_tramite = ?";
         try(PreparedStatement preparedStatement = connection.prepareStatement(consultaSQL)) {
             preparedStatement.setInt(1, idTramite);
             preparedStatement.executeUpdate();
         } catch(SQLException e) {
-            throw new TramiteException("Ha ocurrido un error intentando ELIMINAR el trámite: " + idTramite);
+            throw new TramiteException("Ha ocurrido un error intentando ELIMINAR el trámite: " + idTramite + "\n" + e.getMessage());
         }
         return true;
     }
@@ -141,7 +282,7 @@ public class ModeloCiudadaniasEuropeas {
                 String domicilio = resultSet.getString("domicilio");
                 String ciudad = resultSet.getString("ciudad");
                 String provincia = resultSet.getString("provincia");
-                long idPais = resultSet.getLong("id_pais");
+                long idPais = resultSet.getLong("id_pais_fk");
                 Pais pais = this.obtenerPaisPorId(idPais);
                 consulado = new Consulado();
                 consulado.setId(idConsuladoResult);
@@ -152,7 +293,7 @@ public class ModeloCiudadaniasEuropeas {
             }
             resultSet.close();
         } catch(SQLException e) {
-            throw new TramiteException(ERROR_GENERICO + "el consulado: " + idConsulado);
+            throw new TramiteException(ERROR_GENERICO + "el consulado: " + idConsulado + "\n" + e.getMessage());
         }
         return consulado;
     }
@@ -164,7 +305,7 @@ public class ModeloCiudadaniasEuropeas {
             preparedStatement.setLong(1, idTipoTramite);
             ResultSet resultSet = preparedStatement.executeQuery();
             while(resultSet.next()) {
-                long idTipoTramiteResult = resultSet.getLong("id_tipoTramite");
+                long idTipoTramiteResult = resultSet.getLong("id_tipo_tramite");
                 String nombre = resultSet.getString("nombre");
                 String descripcion = resultSet.getString("descripcion");
                 tipoTramite = new TipoTramite();
@@ -174,7 +315,7 @@ public class ModeloCiudadaniasEuropeas {
             }
             resultSet.close();
         } catch(SQLException e) {
-            throw new TramiteException(ERROR_GENERICO + "el tipo de trámite: " + idTipoTramite);
+            throw new TramiteException(ERROR_GENERICO + "el tipo de trámite: " + idTipoTramite + "\n" + e.getMessage());
         }
         return tipoTramite;
     }
@@ -194,7 +335,7 @@ public class ModeloCiudadaniasEuropeas {
             }
             resultSet.close();
         } catch(SQLException e) {
-            throw new TramiteException(ERROR_GENERICO + "el país: " + idPais);
+            throw new TramiteException(ERROR_GENERICO + "el país: " + idPais + "\n" + e.getMessage());
         }
         return pais;
     }
@@ -212,7 +353,7 @@ public class ModeloCiudadaniasEuropeas {
             }
             resultSet.close();
         } catch(SQLException e) {
-            throw new TramiteException(ERROR_GENERICO + "los detalles de trámite: " + idTramite);
+            throw new TramiteException(ERROR_GENERICO + "los detalles de trámite: " + idTramite + "\n" + e.getMessage());
         }
         return listaDetallesTramite;
     }
@@ -225,18 +366,15 @@ public class ModeloCiudadaniasEuropeas {
             ResultSet resultSet = preparedStatement.executeQuery();
             while(resultSet.next()) {
                 long idDetalleTramiteResult = resultSet.getLong("id_detalle_tramite");
-                Date fechaInicio = resultSet.getDate("fecha_inicio");
-                Date fechaFin = resultSet.getDate("fecha_fin");
+                Timestamp fechaInicio = resultSet.getTimestamp("fecha_inicio");
+                Timestamp fechaFin = resultSet.getTimestamp("fecha_fin");
                 long idEstadoTramite = resultSet.getLong("id_estado_tramite");
-                long idConsulado = resultSet.getLong("id_consulado");
                 EstadoTramite estadoTramite = this.obtenerEstadoTramitePorId(idEstadoTramite);
-                Consulado consulado = this.obtenerConsuladoPorId(idConsulado);
                 detalleTramite = new DetalleTramite();
                 detalleTramite.setId(idDetalleTramiteResult);
                 detalleTramite.setFechaInicio(new Timestamp(fechaInicio.getTime()).toLocalDateTime());
-                detalleTramite.setFechaFin(new Timestamp(fechaFin.getTime()).toLocalDateTime());
+                detalleTramite.setFechaFin(fechaFin.toLocalDateTime());
                 detalleTramite.setEstado(estadoTramite);
-                detalleTramite.setConsulado(consulado);
                 detalleTramite.setListaClientes(this.obtenerClientes(idDetalleTramiteResult));
                 detalleTramite.setListaUsuarios(this.obtenerUsuarios(idDetalleTramiteResult));
                 detalleTramite.setListaObservaciones(this.obtenerObservaciones(idDetalleTramiteResult));
@@ -244,19 +382,19 @@ public class ModeloCiudadaniasEuropeas {
             }
             resultSet.close();
         } catch(SQLException e) {
-            throw new TramiteException(ERROR_GENERICO + "el detalle del trámite: " + idDetalleTramite);
+            throw new TramiteException(ERROR_GENERICO + "el detalle del trámite: " + idDetalleTramite + "\n" + e.getMessage());
         }
         return detalleTramite;
     }
 
     private EstadoTramite obtenerEstadoTramitePorId(long idEstadoTramite) throws TramiteException {
         EstadoTramite estadoTramite = null;
-        String consultaSQL = CONSULTA_GENERICA + "estado_tramite WHERE id_estado_tramite = ?";
+        String consultaSQL = CONSULTA_GENERICA + "estado_tramite WHERE id_estado = ?";
         try(PreparedStatement preparedStatement = connection.prepareStatement(consultaSQL)) {
             preparedStatement.setLong(1, idEstadoTramite);
             ResultSet resultSet = preparedStatement.executeQuery();
             while(resultSet.next()) {
-                long idEstadoTramiteResult = resultSet.getLong("id_estado_tramite");
+                long idEstadoTramiteResult = resultSet.getLong("id_estado");
                 String nombre = resultSet.getString("nombre");
                 String descripcion = resultSet.getString("descripcion");
                 estadoTramite = new EstadoTramite();
@@ -266,7 +404,7 @@ public class ModeloCiudadaniasEuropeas {
             }
             resultSet.close();
         } catch(SQLException e) {
-            throw new TramiteException(ERROR_GENERICO + "el estado del trámite: " + idEstadoTramite);
+            throw new TramiteException(ERROR_GENERICO + "el estado del trámite: " + idEstadoTramite + "\n" + e.getMessage());
         }
         return estadoTramite;
     }
@@ -284,7 +422,7 @@ public class ModeloCiudadaniasEuropeas {
             }
             resultSet.close();
         } catch(SQLException e) {
-            throw new TramiteException(ERROR_GENERICO + "los clientes para ese detalle de trámite: " + idDetalleTramite);
+            throw new TramiteException(ERROR_GENERICO + "los clientes para ese detalle de trámite: " + idDetalleTramite + "\n" + e.getMessage());
         }
         return listaClientes;
     }
@@ -310,7 +448,7 @@ public class ModeloCiudadaniasEuropeas {
             }
             resultSet.close();
         } catch(SQLException e) {
-            throw new TramiteException(ERROR_GENERICO + "el cliente: " + idCliente);
+            throw new TramiteException(ERROR_GENERICO + "el cliente: " + idCliente + "\n" + e.getMessage());
         }
         return cliente;
     }
@@ -328,7 +466,7 @@ public class ModeloCiudadaniasEuropeas {
             }
             resultSet.close();
         } catch(SQLException e) {
-            throw new TramiteException(ERROR_GENERICO + "los usuarios para ese detalle de trámite: " + idDetalleTramite);
+            throw new TramiteException(ERROR_GENERICO + "los usuarios para ese detalle de trámite: " + idDetalleTramite + "\n" + e.getMessage());
         }
         return listaUsuarios;
     }
@@ -345,7 +483,7 @@ public class ModeloCiudadaniasEuropeas {
                 String apellido = resultSet.getString("apellido");
                 long dni = resultSet.getLong("dni");
                 String email = resultSet.getString("email");
-                long idRol = resultSet.getLong("rol");
+                long idRol = resultSet.getLong("id_rol");
                 usuario = new Usuario();
                 usuario.setId(idUsuarioResult);
                 usuario.setNombre(nombre);
@@ -356,7 +494,7 @@ public class ModeloCiudadaniasEuropeas {
             }
             resultSet.close();
         } catch(SQLException e) {
-            throw new TramiteException(ERROR_GENERICO + "el usuario: " + idUsuario);
+            throw new TramiteException(ERROR_GENERICO + "el usuario: " + idUsuario + "\n" + e.getMessage());
         }
         return usuario;
     }
@@ -378,7 +516,7 @@ public class ModeloCiudadaniasEuropeas {
             }
             resultSet.close();
         } catch(SQLException e) {
-            throw new TramiteException(ERROR_GENERICO + "el rol: " + idRol);
+            throw new TramiteException(ERROR_GENERICO + "el rol: " + idRol + "\n" + e.getMessage());
         }
         return rol;
     }
@@ -396,7 +534,7 @@ public class ModeloCiudadaniasEuropeas {
             }
             resultSet.close();
         } catch(SQLException e) {
-            throw new TramiteException(ERROR_GENERICO + "las observaciones para ese detalle de trámite: " + idDetalleTramite);
+            throw new TramiteException(ERROR_GENERICO + "las observaciones para ese detalle de trámite: " + idDetalleTramite + "\n" + e.getMessage());
         }
         return listaObservaciones;
     }
@@ -409,16 +547,16 @@ public class ModeloCiudadaniasEuropeas {
             ResultSet resultSet = preparedStatement.executeQuery();
             while(resultSet.next()) {
                 long idObservacionResult = resultSet.getLong("id_observacion");
-                Date fecha = resultSet.getDate("fecha");
+                Timestamp fecha = resultSet.getTimestamp("fecha");
                 String descripcion = resultSet.getString("descripcion");
                 observacion = new Observacion();
                 observacion.setId(idObservacionResult);
-                observacion.setFecha(new Timestamp(fecha.getTime()).toLocalDateTime());
+                observacion.setFecha(fecha.toLocalDateTime());
                 observacion.setDescripcion(descripcion);
             }
             resultSet.close();
         } catch(SQLException e) {
-            throw new TramiteException(ERROR_GENERICO + "la observación: " + idObservacion);
+            throw new TramiteException(ERROR_GENERICO + "la observación: " + idObservacion + "\n" + e.getMessage());
         }
         return observacion;
     }
@@ -436,7 +574,7 @@ public class ModeloCiudadaniasEuropeas {
             }
             resultSet.close();
         } catch(SQLException e) {
-            throw new TramiteException(ERROR_GENERICO + "los documentos para ese detalle de trámite: " + idDetalleTramite);
+            throw new TramiteException(ERROR_GENERICO + "los documentos para ese detalle de trámite: " + idDetalleTramite + "\n" + e.getMessage());
         }
         return listaDocumentos;
     }
@@ -449,32 +587,32 @@ public class ModeloCiudadaniasEuropeas {
             ResultSet resultSet = preparedStatement.executeQuery();
             while(resultSet.next()) {
                 long idDocumentoResult = resultSet.getLong("id_documento");
-                Date fechaPresentacion = resultSet.getDate("fecha_presentacion");
+                Timestamp fechaPresentacion = resultSet.getTimestamp("fecha_presentacion");
                 String nombre = resultSet.getString("nombre");
                 String descripcion = resultSet.getString("descripcion");
                 long idTipoDocumento = resultSet.getLong("id_tipo_documento");
                 documento = new Documento();
                 documento.setId(idDocumentoResult);
-                documento.setFechaPresentacion(new Timestamp(fechaPresentacion.getTime()).toLocalDateTime());
+                documento.setFechaPresentacion(fechaPresentacion.toLocalDateTime());
                 documento.setNombre(nombre);
                 documento.setDescripcion(descripcion);
                 documento.setTipoDocumento(this.obtenerTipoDocumentoPorId(idTipoDocumento));
             }
             resultSet.close();
         } catch(SQLException e) {
-            throw new TramiteException(ERROR_GENERICO + "el documento: " + idDocumento);
+            throw new TramiteException(ERROR_GENERICO + "el documento: " + idDocumento + "\n" + e.getMessage());
         }
         return documento;
     }
 
     private TipoDocumento obtenerTipoDocumentoPorId(long idTipoDocumento) throws TramiteException {
         TipoDocumento tipoDocumento = null;
-        String consultaSQL = CONSULTA_GENERICA + "tipo_documento WHERE id_tipoDocumento = ?";
+        String consultaSQL = CONSULTA_GENERICA + "tipo_documento WHERE id_tipo_documento = ?";
         try(PreparedStatement preparedStatement = connection.prepareStatement(consultaSQL)) {
             preparedStatement.setLong(1, idTipoDocumento);
             ResultSet resultSet = preparedStatement.executeQuery();
             while(resultSet.next()) {
-                long idTipoDocumentoResult = resultSet.getLong("id_tipoDocumento");
+                long idTipoDocumentoResult = resultSet.getLong("id_tipo_documento");
                 String nombre = resultSet.getString("nombre");
                 String descripcion = resultSet.getString("descripcion");
                 tipoDocumento = new TipoDocumento();
@@ -484,8 +622,12 @@ public class ModeloCiudadaniasEuropeas {
             }
             resultSet.close();
         } catch(SQLException e) {
-            throw new TramiteException(ERROR_GENERICO + "el tipo de documento: " + idTipoDocumento);
+            throw new TramiteException(ERROR_GENERICO + "el tipo de documento: " + idTipoDocumento + "\n" + e.getMessage());
         }
         return tipoDocumento;
+    }
+
+    private Timestamp desdeLocalDateTimeHaciaTimestamp(LocalDateTime localDateTime) {
+        return new Timestamp(localDateTime.toInstant(LocalDateTime.now().atZone(ZoneId.systemDefault()).getOffset()).toEpochMilli());
     }
 }

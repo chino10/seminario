@@ -34,14 +34,12 @@ public class Tramite {
     public void setImporte(Float importe) {
         this.importe = importe;
     }
-
     public String getMoneda() {
         return moneda;
     }
     public void setMoneda(String moneda) {
         this.moneda = moneda;
     }
-
     public List<DetalleTramite> getListaDetallesTramite() {
         return listaDetallesTramite;
     }
