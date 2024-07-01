@@ -1,4 +1,4 @@
-CREATE DATABASE  IF NOT EXISTS `ciudadanias_europeas`
+CREATE DATABASE  IF NOT EXISTS `ciudadanias_europeas`;
 USE `ciudadanias_europeas`;
 
 --
